@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -11,6 +11,13 @@ func dataSourceDistroImage() *schema.Resource {
 		Read: dataSourceDistroImageRead,
 
 		Schema: map[string]*schema.Schema{
+			"channel": &schema.Schema{
+				Type:        schema.TypeString,
+				Description: "CoreOS update channel",
+				Default:     "stable",
+				Optional:    true,
+				ForceNew:    true,
+			},
 			"cloud_provider": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
@@ -25,12 +32,32 @@ func dataSourceDistroImage() *schema.Resource {
 				Description: "The distro to be used with the cloud provider: coreos (default), arch, ubuntu, etc",
 				ForceNew:    true,
 			},
+			"region": &schema.Schema{
+				Type:        schema.TypeString,
+				Description: "Region. Applies to ami boxes.",
+				Default:     "us-west-2",
+				Optional:    true,
+				ForceNew:    true,
+			},
 			"version": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("CLOUD_DISTRO_VERSION", "latest"),
-				Description: "The distro version to be used. Default to \"latest\".",
+				DefaultFunc: schema.EnvDefaultFunc("CLOUD_DISTRO_VERSION", "current"),
+				Description: "The distro version to be used. Default to \"current\".",
 				ForceNew:    true,
+			},
+			"virtualization": &schema.Schema{
+				Type:        schema.TypeString,
+				Description: "Virtualization type. Applies to ami boxes: pv or hvm",
+				Default:     "hvm",
+				Optional:    true,
+				ForceNew:    true,
+			},
+			"output_path": &schema.Schema{
+				Type:        schema.TypeString,
+				Computed:    true,
+				ForceNew:    true,
+				Description: "Path information string, ie. gce path, vagrant box url, etc.",
 			},
 			"output_name": &schema.Schema{
 				Type:        schema.TypeString,
@@ -43,9 +70,12 @@ func dataSourceDistroImage() *schema.Resource {
 }
 
 func dataSourceDistroImageRead(d *schema.ResourceData, meta interface{}) error {
-	name := "xyz_image.ami"
-	d.Set("output_name", name)
-	log.Printf("%k", d)
-	d.SetId(name)
-	return nil
+	cloud_provider := d.Get("cloud_provider")
+	switch cloud_provider {
+	case "aws":
+		return dataSourceDistroImageAwsRead(d, meta)
+	case "jpc":
+		return dataSourceDistroImageJpcRead(d, meta)
+	}
+	return fmt.Errorf("%s is not a supported cloud provider", cloud_provider)
 }
