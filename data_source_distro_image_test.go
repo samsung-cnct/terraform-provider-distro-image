@@ -16,7 +16,16 @@ func TestAccDistroImage_Basic(t *testing.T) {
 				Check: r.ComposeTestCheckFunc(
 					r.TestMatchResourceAttr(
 						"data.distro_image.foo", "output_name",
-						regexp.MustCompile(`^CoreOS-stable-[0-9.]+$`),
+						regexp.MustCompile(`^coreos-stable:current-[0-9.]+$`),
+					),
+				),
+			},
+			r.TestStep{
+				Config: testAccDistroImageAwsUbuntuConfig,
+				Check: r.ComposeTestCheckFunc(
+					r.TestMatchResourceAttr(
+						"data.distro_image.bar", "output_name",
+						regexp.MustCompile(`^ubuntu-com.ubuntu.cloud:server:16.04:amd64:[0-9.]+:[a-z0-9]+-[0-9.]+$`),
 					),
 				),
 			},
@@ -27,5 +36,14 @@ func TestAccDistroImage_Basic(t *testing.T) {
 var testAccDistroImageAwsCoreOSConfig = `
 data "distro_image" "foo" {
     cloud_provider = "aws"
+}
+`
+
+var testAccDistroImageAwsUbuntuConfig = `
+data "distro_image" "bar" {
+    cloud_provider = "aws"
+	distribution = "ubuntu"
+	store = "ssd"
+	version = "16.04"
 }
 `

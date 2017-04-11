@@ -11,6 +11,13 @@ func dataSourceDistroImage() *schema.Resource {
 		Read: dataSourceDistroImageRead,
 
 		Schema: map[string]*schema.Schema{
+			"arch": &schema.Schema{
+				Type:        schema.TypeString,
+				Description: "Archetecture string, ie. amd64, x86_64, i686, etc.",
+				Default:     "amd64",
+				Optional:    true,
+				ForceNew:    true,
+			},
 			"channel": &schema.Schema{
 				Type:        schema.TypeString,
 				Description: "CoreOS update channel",
@@ -37,6 +44,20 @@ func dataSourceDistroImage() *schema.Resource {
 				Description: "Region. Applies to ami boxes.",
 				Default:     "us-west-2",
 				Optional:    true,
+				ForceNew:    true,
+			},
+			"store": &schema.Schema{
+				Type:        schema.TypeString,
+				Description: "Storage Type.",
+				Default:     "ebs",
+				Optional:    true,
+				ForceNew:    true,
+			},
+			"subversion": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("CLOUD_DISTRO_SUBVERSION", "latest"),
+				Description: "The distro version to be used. Default to \"latest\".",
 				ForceNew:    true,
 			},
 			"version": &schema.Schema{

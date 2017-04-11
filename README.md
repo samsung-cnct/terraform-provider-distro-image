@@ -6,7 +6,7 @@ This [Terraform](http://terraform.io) provider is for dynamically finding distro
 
 Development/Testing
 
-Currently only supports ami and gce for coreos and ubuntu.
+Currently only supports aws for coreos and ubuntu.
 
 ## Install - Build
 
@@ -23,87 +23,52 @@ $ brew tap 'samsung-cnct/terraform-provider-coreosbox'
 $ brew install terraform-provider-coreosbox
 ```
 
-## Usage
+## Example Usage
 
 
 ```
-resource "distro_distro_coreos_ami" "current_ami" {
-  channel = "alpha"
-  virtualization = "hvm"
-  region = "us-east-1"
-  version = "current"
+data "distro_image" "coreos_ami" {
+    cloud_provider = "aws"
+    distribution = "coreos"
+    region = "us-east-1"
+    version = "current"
 }
 
-resource "distro_coreos_ami" "versioned_ami" {
-  channel = "stable"
-  virtualization = "hvm"
-  region = "us-east-1"
-  version = "647.2.0"
+data "distro_image" "ubuntu_ami" {
+    cloud_provider = "aws"
+    distribution = "ubuntu"
+    region = "us-west-2"
+    store = "ssd"
+    version = "16.04"
 }
 
-resource "distro_coreos_gce" "current_gce" {
-  channel = "alpha"
-  version = "current"
+output "info_ami_coreos" {
+    value = "Image: ${data.distro_image.coreos_ami.output_name}, ami: ${data.distro_image.coreos_ami.output_path}." 
 }
 
-resource "distro_coreos_gce" "versioned_gce" {
-  channel = "stable"
-  version = "647.2.0"
-}
-
-resource "distro_coreos_vagrant" "current_vagrant" {
-  channel = "alpha"
-  version = "current"
-  hypervisor = "virtualbox"
-}
-
-resource "distro_coreos_vagrant" "versioned_vagrant" {
-  channel = "stable"
-  version = "647.2.0"
-  hypervisor = "virtualbox"
-}
-
-resource "distro_coreos_vagrant" "current_vagrant_vmware" {
-  channel = "alpha"
-  version = "current"
-  hypervisor = "vmware"
-}
-
-resource "distro_coreos_vagrant" "versioned_vagrant_vmware" {
-  channel = "stable"
-  version = "647.2.0"
-  hypervisor = "vmware"
-}
-
-output "info_ami" {
-    value = "Version: ${distro_coreos_ami.current_ami.version_out}, ami: ${distro_coreos_ami.current_ami.box_string}." 
-}
-
-output "info_ami_versioned" {
-    value = "Version: ${distro_coreos_ami.versioned_ami.version_out}, ami: ${distro_coreos_ami.versioned_ami.box_string}." 
-}
-
-output "info_gce" {
-    value = "Version: ${distro_coreos_gce.current_gce.version_out}, box: ${distro_coreos_gce.current_gce.box_string}." 
-}
-
-output "info_gce_versioned" {
-    value = "Version: ${distro_coreos_gce.versioned_gce.version_out}, box: ${distro_coreos_gce.versioned_gce.box_string}." 
-}
-
-output "info_vagrant" {
-    value = "Version: ${distro_coreos_vagrant.current_vagrant.version_out}, box: ${distro_coreos_vagrant.current_vagrant.box_string}." 
-}
-
-output "info_vagrant_versioned" {
-    value = "Version: ${distro_coreos_vagrant.versioned_vagrant.version_out}, box: ${distro_coreos_vagrant.versioned_vagrant.box_string}." 
-}
-
-output "info_vmware" {
-    value = "Version: ${distro_coreos_vagrant.current_vagrant_vmware.version_out}, box: ${distro_coreos_vagrant.current_vagrant_vmware.box_string}." 
-}
-
-output "info_vmware_versioned" {
-    value = "Version: ${distro_coreos_vagrant.versioned_vagrant_vmware.version_out}, box: ${distro_coreos_vagrant.versioned_vagrant_vmware.box_string}." 
+output "info_ami_ubuntu" {
+    value = "Image: ${data.distro_image.ubuntu_ami.output_name}, ami: ${data.distro_image.ubuntu_ami.output_path}." 
 }
 ```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* arch - (optional) The type of architecture, ie. amd64 (default), x86_64, i686, etc. NOTE: This is distro specific.
+* channel - (optional) CoreOS update channel, CoreOS only.
+* cloud_provider - (required) The name of the cloud provider: aws, gke, jpc
+* distribution - (optional) The distro to be used with the cloud provider: coreos (default), ubuntu
+* region - (optional) The provider region in which to select the image from
+* store - (optional) The provider store (if used), ie. instance, ebs, ssd
+* subversion - (optional) The distro sub-verson to be used. Default to "latest".
+* version - (optional) The distro version to be used. Default to "current".
+* virtualization - (optional) The virtualization type. Provider specific, ie. pv or hvm for aws.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* output_path - The path data needed to select this image, ami id for aws, etc.
+* output_name - The human readable name of the image returned.
+

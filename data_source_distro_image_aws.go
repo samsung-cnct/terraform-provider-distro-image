@@ -11,7 +11,7 @@ func dataSourceDistroImageAwsRead(d *schema.ResourceData, meta interface{}) erro
 	distro := d.Get("distribution")
 	switch distro {
 	case "coreos":
-		log.Printf("[DEBUG] Searching aws for CoreOS image.")
+		log.Printf("[DEBUG] Searching for CoreOS image for AWS.")
 		version, err := getAwsAmiCoreOSVersion(d)
 		if err != nil {
 			return err
@@ -20,10 +20,29 @@ func dataSourceDistroImageAwsRead(d *schema.ResourceData, meta interface{}) erro
 		if err != nil {
 			return err
 		}
-		d.Set("output_name", version)
-		d.Set("output_path", path)
-		d.SetId(getAwsCoreOSId(d))
+		id := getAwsCoreOSId(d)
+		setData(d, id, version, path)
+		return nil
+	case "ubuntu":
+		log.Printf("[DEBUG] Searching for Ubuntu image for AWS.")
+		version, err := getAwsAmiUbuntuVersion(d)
+		if err != nil {
+			return err
+		}
+		path, err := getAwsAmiUbuntuPath(d)
+		if err != nil {
+			return err
+		}
+		id := getAwsUbuntuId(d)
+		setData(d, id, version, path)
 		return nil
 	}
 	return fmt.Errorf("%s is not a supported AWS distribution\n", distro)
+}
+
+func setData(d *schema.ResourceData, id string, version string, path string) error {
+	d.Set("output_name", fmt.Sprintf("%s-%s-%s", d.Get("distribution").(string), id, version))
+	d.Set("output_path", path)
+	d.SetId(id)
+	return nil
 }

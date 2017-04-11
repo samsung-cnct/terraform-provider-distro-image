@@ -35,8 +35,6 @@ func getAwsAmiCoreOSVersion(d *schema.ResourceData) (string, error) {
 		return "", err
 	}
 
-	log.Printf("[DEBUG] coreos.net returns: %v", verInfo)
-
 	return verInfo.GetString("default", "COREOS_VERSION")
 }
 
