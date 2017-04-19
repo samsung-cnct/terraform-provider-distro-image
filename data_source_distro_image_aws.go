@@ -25,15 +25,13 @@ func dataSourceDistroImageAwsRead(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	case "ubuntu":
 		log.Printf("[DEBUG] Searching for Ubuntu image for AWS.")
-		version, err := getAwsAmiUbuntuVersion(d)
+		ubuntu, err := NewAwsUbuntuImages(d)
 		if err != nil {
 			return err
 		}
-		path, err := getAwsAmiUbuntuPath(d)
-		if err != nil {
-			return err
-		}
-		id := getAwsUbuntuId(d)
+		version := ubuntu.GetVersion()
+		path := ubuntu.GetPath()
+		id := ubuntu.GetId()
 		setData(d, id, version, path)
 		return nil
 	}
