@@ -15,7 +15,7 @@ podTemplate(label: 'tf-distroimage-go', containers: [
 
             stage('build') {
                 sh 'go get -v -d -t ./... || true'
-                sh 'go build -v'
+                sh 'GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v'
             }
 
             stage('test') {
